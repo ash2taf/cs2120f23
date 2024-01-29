@@ -243,7 +243,7 @@ def inc_after_sq : Nat → Nat
 
 /-! generic function composition function
 like lambda expressions in other languages
-can do them in lean with the keyword 'fun'
+can do them in lean with the keyword 'fun' (alternately can use lambda λ)
 -/
 def comp (α β γ : Type) : (β → γ) → (α → β) → (α → γ)
 |g, f => fun a => g (f a)
@@ -268,7 +268,7 @@ def is_even_len' := comp' isEven String.length
 /-!
 function α → α, applies given function twice-/
 def apply2_any {α : Type}: (α → α) → (α → α)
-| f =>  fun a =>f (f a)
+| f =>  fun a => f (f a)
 
 #eval apply2_any sq 2
 
