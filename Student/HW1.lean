@@ -37,3 +37,26 @@ def ListLen {α : Type} : List α → Nat
 |List.cons _ l' => 1 + ListLen l'
 
 #eval ListLen [1,2,3]
+
+--Continued 1/31
+--applyN version using the apply, proper parenthesis is key
+
+def applyN' {α : Type} : Nat → (α → α) → α → α
+| Nat.zero, _ => fun a => a
+| Nat.succ n', f => fun a => (f ∘ applyN n' f) a
+
+--Look ma, no Lambda (for the recursive case anyway, get the function from the zero case)
+def applyN'' {α : Type} : Nat → (α → α) → α → α
+| Nat.zero, _ => fun a => a
+| Nat.succ n', f => f ∘ applyN n' f
+
+#eval (applyN' 5 Nat.succ 0)
+
+#eval (applyN' 5 sq 2)
+
+def my_comp {α β γ : Type} :  (α → β) → (β → γ) → (α → γ)
+|f, g => fun a => (g ∘ f) a
+
+--prev version for comparison, managed to recreate but swapped the input functions
+def comp (α β γ : Type) : (β → γ) → (α → β) → (α → γ)
+|g, f => fun a => g (f a)
