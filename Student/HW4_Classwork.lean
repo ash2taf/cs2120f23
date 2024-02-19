@@ -109,4 +109,27 @@ in languages like Java, use supertypes and adh-hoc polymorphism instead (differe
 #check Tree
 
 
-structure functor
+structure functor {α β :Type} (c: Type → Type) : Type where--(c α) → (c β)
+map (f: α → β) (ic : c α) : c β
+
+--key idea, takes a container type and a mapping function in order to be polymorphic
+def list_functr {α β :Type}: @functor α β List:= functor.mk list_map
+def opt_functr {α β :Type}: @functor α β Option := functor.mk option_map
+
+#check @list_functr
+--really polymorphic, takes a function α → β, converts via a functr container type
+def convert {α β :Type} (c: Type → Type) (m: @functor α β c): (f: α → β) → c α → c β
+| f, c  =>  m.map f c
+
+#reduce convert List list_functr Nat.succ [1,2,3,4,5]
+#reduce convert Option opt_functr Nat.succ (Option.some 3)
+
+--can't do this because no map funciton or functr
+inductive box (α : Type)
+|contents (a : α)
+
+
+
+--first version doesn't constrain map at all though, want some guarantees
+structure functor' {α β :Type} (c: Type → Type) (f: α → β) : Type where--(c α) → (c β)
+map (f: α → β) (ic : c α) : c β
