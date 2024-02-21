@@ -63,7 +63,7 @@ def a_tree :=
 ie, '#eval tree_map Nat.succ a_tree' gives an error
 -/
 
-
+--Note from class: using Reduce is fine, eval doesn't work because don't know how to print custom things
 
 /-!
 The functor type, below, generalizes the idea
@@ -78,6 +78,13 @@ follows has everything we need.
 
 structure functor (c : Type → Type) where
 map {α β : Type} (f : α → β) (ic : c α) : c β
+--important: the c term is a polymorhpic container type, ie List, Tree, etc
+--containers are not types without their polymorphic type, ie List Nat but not List
+
+--new functor that is a class:
+
+class functor' (c : Type → Type) where
+map {α β : Type} (f : α → β) (ic : c α) : c β
 
 /-!
 Here are functor *instances* for the polymorphic
@@ -86,6 +93,10 @@ container-like List and Option types.
 
 def list_functor : functor List  := functor.mk list_map
 def option_functor : functor Option  := functor.mk option_map
+
+--new functor' versions (class)
+def list_functor' : functor' List  := functor'.mk list_map
+def option_functor' : functor' Option  := functor'.mk option_map
 
 /-! Problem #2
 
@@ -99,11 +110,17 @@ def do_map {α β : Type} {c : Type → Type} (m : functor c) :
   (f : α → β) → c α → c β
 | f, c => m.map f c
 
+--new version with functor' class from class
+def do_map' {α β : Type} {c : Type → Type} (m : functor' c) :
+  (f : α → β) → c α → c β
+| f, c => m.map f c
+
 -- These test cases should succeed when do_map is right
 #eval do_map list_functor Nat.succ [1,2,3]  -- [2, 3, 4]
 #eval do_map option_functor (λ s => s ++ "!") (some "Hi")
 
-
+#eval do_map' list_functor' Nat.succ [1,2,3]  -- [2, 3, 4]
+#eval do_map' option_functor' (λ s => s ++ "!") (some "Hi")
 
 
 /-! Problem #3
@@ -124,6 +141,10 @@ Define functor instances for Box and Tree.
 def tree_functor : functor Tree  := functor.mk tree_map
 def box_functor : functor Box  := functor.mk box_map
 
+--functor' class versions
+def tree_functor' : functor' Tree  := functor'.mk tree_map
+def box_functor' : functor' Box  := functor'.mk box_map
+
 /-! Problem #5
 
 Give working examples, using #eval, of applying do_map
@@ -138,11 +159,55 @@ to a Box Nat and Tree String values.
 /-!
 Here's an infix notation for do_map and a few examples
 of its use.
+Note: $ is the standard version for Haskell and OCaml, which is why it's the default
 -/
 
 infix:50 "<$>"  => do_map
 #eval Nat.succ <$> [1,2,3]
 #eval (λ s => s ++ "!") <$> ["Hi", "Yo"]
+
+/-!
+this is where things broke on the homework, need to change the do_map
+infix can't handle the 3 args needed in the original
+a do_map that has a functor instance that lean can find removes one of the inputs needed
+square brackets tell lean to go find the instance
+this version has 4 implicit parameters and 2 explicit
+the implicit arg m term imposes a constraint on c: must be a container type which has a defined functor'
+-/
+
+def do_map'' {α β : Type} {c : Type → Type} [m : functor' c] :
+  (f : α → β) → c α → c β
+| f, c => m.map f c
+
+/-!
+Also need to create appropriate instances so it can be found
+can only do this because functor is a class, not a simple structure
+these typeclass instances add metadata/structures around the type given
+here we're associating the map instances with the base container types
+-/
+instance : functor' List := ⟨list_map⟩
+instance : functor' Option := ⟨option_map⟩
+instance : functor' Box := ⟨box_map⟩
+instance : functor' Tree := ⟨tree_map⟩
+
+#reduce do_map'' Nat.succ [1,2,3]
+#reduce do_map'' Nat.succ (Option.some 3)
+#reduce do_map'' Nat.succ (Box.contents 23)
+#reduce do_map'' Nat.succ a_tree
+
+-- so now we have a working 2 input version of do_map, so long as there are instances on the functor'
+
+infix:50 "<%>"  => do_map''
+#eval Nat.succ <%> [1,2,3]
+#eval (λ s => s ++ "!") <%> ["Hi", "Yo"]
+#reduce Nat.succ <%> (Box.contents 3)
+#reduce Nat.succ <%> a_tree
+
+/-!
+Lean has a Functor version, capitalized, and has a bunch of stuff predefined
+we would get a clash if we tried using the $ version with an ambiguous error, switching the symbol avoided here
+
+-/
 
 /-! Problem #6
 
@@ -150,6 +215,8 @@ Rewrite your/our examples of mapping over List,
 Option, Box, and Tree values using <$> notation.
 -/
 #reduce Nat.succ <$> [1,2,3] --verifying that reduce doesn't cause issues
+
+/-! This is the old error tests from the HW, see proper version above with the <%> operator
 
 --do_map takes 3 inputs and doesn't have a functor here, so is upset
 --not sure why the list and option just work
@@ -167,6 +234,11 @@ Option, Box, and Tree values using <$> notation.
 #reduce tree_map Nat.succ a_tree
 #reduce Nat.succ <$> a_tree --and again
 
+--asked a freind in class, they had similar problems but got this format:
+#reduce (box_map <$> String.length) box_a --which still doesn't fly for me
+
+
+-/
 --my list and option examples from last class work fine
 #reduce list_map Nat.succ [1,2,3,4,5]
 #reduce Nat.succ <$> [1,2,3,4,5]
