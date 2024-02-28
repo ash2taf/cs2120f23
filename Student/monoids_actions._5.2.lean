@@ -1,5 +1,6 @@
 import Mathlib.Algebra.Group.Defs
 import Mathlib.GroupTheory.GroupAction.Defs
+import Mathlib.Algebra.AddTorsor
 /-!
 We now turn to formalization of mathematical structures
 using the rich collection of abstractions already defined
@@ -381,6 +382,33 @@ class VAdd (G : Type u) (P : Type v) : Type (max u v)
 for additive actions. Then implement AddAction for the Rotation type.
 -/
 
+/-!
+Homework #1: Endow Rotation with the additional structure of an additive group.
+-/
+#check AddGroup.mk
+/-!
+AddGroup.mk.{u}
+  {A : Type u}
+  [toSubNegMonoid : SubNegMonoid A]
+  (add_left_neg : ∀ (a : A), -a + a = 0) :
+AddGroup A
+-/
+
+-- Hint:
+#check SubNegMonoid.mk
+/-!
+SubNegMonoid.mk.{u}
+  {G : Type u}
+  [toAddMonoid : AddMonoid G]
+  [toNeg : Neg G]
+  [toSub : Sub G]
+  (sub_eq_add_neg : ∀ (a b : G), a - b = a + -b := by intros; rfl) (zsmul : ℤ → G → G)
+  (zsmul_zero' : ∀ (a : G), zsmul 0 a = 0 := by intros; rfl)
+  (zsmul_succ' : ∀ (n : ℕ) (a : G), zsmul (Int.ofNat (Nat.succ n)) a = a + zsmul (Int.ofNat n) a := by intros; rfl)
+  (zsmul_neg' : ∀ (n : ℕ) (a : G), zsmul (Int.negSucc n) a = -zsmul (↑(Nat.succ n)) a := by intros; rfl) :
+SubNegMonoid G
+-/
+
 def add_rs : Rotation → State → State
 | r0, s => s
 | r120, s0 => s120
@@ -447,3 +475,49 @@ def sub_State : State → State → Rotation
 | s240, s0 => r240
 | s240, s120 => r120
 | s240, s240 => r0
+
+
+/-!
+Homework #2: Endow State and Rotation with the additional structure of an
+additive torsor over that (additive) group.
+-/
+
+-- Hint: follow the same approach
+
+#check AddTorsor.mk
+
+/-!
+class AddTorsor (G : outParam (Type u_1)) (P : Type u_2) [outParam (AddGroup G)] extends AddAction , VSub :
+Type (max u_1 u_2)
+
+class AddTorsor (G : outParam (Type*)) (P : Type*) [outParam <| AddGroup G] extends AddAction G P,
+  VSub G P where
+  [nonempty : Nonempty P]
+  /-- Torsor subtraction and addition with the same element cancels out. -/
+  vsub_vadd' : ∀ p1 p2 : P, (p1 -ᵥ p2 : G) +ᵥ p2 = p1
+  /-- Torsor addition and subtraction with the same element cancels out. -/
+  vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g
+#align add_torsor AddTorsor
+
+An AddTorsor G P gives a structure to the nonempty type P, acted on by an AddGroup G with a transitive and free action given by the +ᵥ operation and a corresponding subtraction given by the -ᵥ operation. In the case of a vector space, it is an affine space.
+
+    vadd : G → P → P
+    zero_vadd : ∀ (p : P), 0 +ᵥ p = p
+    add_vadd : ∀ (g₁ g₂ : G) (p : P), g₁ + g₂ +ᵥ p = g₁ +ᵥ (g₂ +ᵥ p)
+    vsub : P → P → G
+    nonempty : Nonempty P
+    vsub_vadd' : ∀ (p₁ p₂ : P), p₁ -ᵥ p₂ +ᵥ p₂ = p₁
+
+    Torsor subtraction and addition with the same element cancels out.
+    vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g
+
+    Torsor addition and subtraction with the same element cancels out.
+-/
+
+#check VSub.mk
+instance : VSub Rotation State := ⟨ sub_State ⟩
+#check Nonempty.intro
+instance : Nonempty State := ⟨ s0 ⟩ --to instantiate a nonempty, just give any value of the type
+--instance : Nonempty State := ⟨ sorry ⟩ -- before we went over the proof, used to test the AddTorsos
+
+instance : AddTorsor Rotation State := {vsub_vadd' := sorry, vadd_vsub' := sorry}
