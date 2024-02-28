@@ -401,6 +401,32 @@ instance : AddAction Rotation State := {zero_vadd := sorry, add_vadd := sorry}
 #check AddGroup.mk --needs yet more hacking around to get here
 -- try to instantiate addgroup, do similarly to addmonoid
 
+#check SubNegMonoid.mk
+#check Neg.mk
+#check Sub.mk
+
+def toNeg_rot : Rotation → Rotation
+| r0 => r0
+| r120 => r240
+| r240 => r120
+
+def sub_rot : Rotation → Rotation → Rotation
+| r0, a => toNeg_rot a
+| a, r0 => a
+| r120, r120 => r0
+| r120, r240 => r240
+| r240, r120 => r120
+| r240, r240 => r0
+
+instance : Neg Rotation := ⟨ toNeg_rot ⟩
+instance : Sub Rotation := ⟨ sub_rot ⟩
+
+#check SubNegMonoid.mk
+instance : SubNegMonoid Rotation := {sub_eq_add_neg := sorry}
+
+instance : AddGroup Rotation := {add_left_neg := sorry }
+
+
 /-!
 ## Torsors (of Point-like objects)
 
