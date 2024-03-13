@@ -32,3 +32,12 @@ inductive BoborMaryStudyatUVA
 example BoborMaryStudyatUVA := BoborMaryStudyatUVA.l b
 
 --And, Or and Not as types, isomorphic to lots
+
+inductive MyAnd (α β :Type)
+|mk (a:α) (b:β)
+
+inductive MyOr (α β : Type)
+| inr (a : α)
+| inl (b : β)
+
+def MyNot (α : Type) := α → Empty
