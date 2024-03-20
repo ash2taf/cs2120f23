@@ -87,6 +87,15 @@ example :  And B M := ⟨ B.paid, M.attend ⟩
 def b_m_true : B ∧ M := And.intro B.paid M.attend
 theorem b_m_true' : B ∧ M := And.intro B.paid M.attend
 
+--quick toy proof that order is irrelevant for AND
+example (P Q : Prop) : P ∧ Q → Q ∧ P := λ (a : P ∧ Q)  => And.intro a.right  a.left
+example (P Q : Prop) : P ∧ Q → Q ∧ P
+| ⟨p, q⟩ => And.intro q p
+
+--quick toy proof that AND implies OR
+example (P Q : Prop) : P ∧ Q → P ∨ Q := λ (a : P ∧ Q)  => Or.inl a.left
+
+--back to more general AND syntax
 example : B ∧ M → M := λ p => p.right
 example : B ∧ M → B := λ p => p.1
 
@@ -107,8 +116,15 @@ example : ∀ (P Q R : Prop),
 | Or.inl p => pr p
 | Or.inr q => qr q
 
+--quick toy proof that OR is commutative (order flippable)
+example (P Q : Prop) : P ∨ Q → Q ∨ P
+| Or.inl p => Or.inr p
+| Or.inr q => Or.inl q
+
 --Not
---into: prove ¬P by showing P → False
+--into: prove ¬P by showing P → False (assume p, show contradiction (p implies false))
+  -- aka proof by negation, NOT proof by contradiction (similar, but not same)
+  --contradiction says prove p by assumeing ¬p, show ¬¬p, but only in classical logic/under EM
 -- elim: as with any function, elim by apply
 def notK : ¬K := λ k => nomatch k
 
@@ -132,6 +148,16 @@ example (P : Prop) : (P ∨ ¬P) → (¬¬P → P) :=
 -- ∀(P : Prop), P ∨ ¬P
 --can't do proof by contradiction in lean because you don't have this
 
+--lean classical logic space
+#check Classical.em
+--redo of negation elimination proof with Classical.em as the version of EM
+example (P : Prop) : ¬¬P → P :=
+match Classical.em P with
+| Or.inl p => λ _ => p
+| Or.inr np => λ _ => by contradiction --lean tactic language, more powerful than the direct stuff we've been doing
+--basically just telling lean to try to find the ingredients to do something, in this case find proofs of P and ¬P
+
+
 -- Implication (P → Q)
 -- intro: show that you can derive a proof of Q from a proof of P
 -- elim: apply function to proof of P to get a proof of Q
@@ -139,4 +165,28 @@ example (P : Prop) : (P ∨ ¬P) → (¬¬P → P) :=
 --intro example
 def notK' : K → False := λ k => nomatch k
 
+
+#check Lean.Parser.Tactic.contradiction
+--elimination rule for equality, using lean rewrite tactic
+def one_not_eq_zero' (n:Nat): n = 1 → n ≠ 0 :=
+λ (neq1 : n=1) => λ neq0 => by
+rw [neq1] at neq0 --rewrite neq0 with neq1
+cases neq0 --check cases, there are none so we finished
+
+--Lean Equality
+#check 1=0
+--#check Eq.refl 1 0 --eq.refl only takes on input, so confused
+#check Eq 1 0 --this works, Eq takes 2 inputs
+#check Eq.refl 1 -- this works, only the one input now
+
+example : 1=1 := Eq.refl 1
+
 --Quantifiers
+-- Intro to forall: pick arbitrary member of given set, show the arbitrary member fulfill conditions
+-- Use function to show that it works, need general P → Q func
+-- ∀ P, Q := λ p : P => _ => q --not correct formatting, just explanation
+-- once you have, can apply to any member of p to show that Q (elimination, universal specialization rule)
+
+--intro to exists: show an example/witness (exists a number even and prime: 2)
+-- or, pick a specific object and show that it meets the required properties (2 is even, 2 is prime)
+-- CANT get back the example that you used however
