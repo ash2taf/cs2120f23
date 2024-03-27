@@ -254,7 +254,10 @@ inherited *Add.add* operation. For now, until we learn more
 about constructing proofs, we'll just "stub out" this value.
 -/
 
-instance : AddSemigroup Rotation := { add_assoc := sorry }
+def rot_add_assoc :
+
+instance : AddSemigroup Rotation := { add_assoc := _ }
+
 
 /-!
 #### AddMonoid
