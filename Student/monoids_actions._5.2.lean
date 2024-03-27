@@ -254,9 +254,63 @@ inherited *Add.add* operation. For now, until we learn more
 about constructing proofs, we'll just "stub out" this value.
 -/
 
-def rot_add_assoc :
+theorem rot_add_assoc : ∀ (a b c : Rotation), a+b+c = a+(b+c)
+| r0, b, c => match b with
+  | r0 => match c with
+    |r0 => rfl
+    |r120 => rfl
+    |r240 => rfl
+  | r120 => match c with
+    |r0 => rfl
+    |r120 => rfl
+    |r240 => rfl
+  | r240 => match c with
+    |r0 => rfl
+    |r120 => rfl
+    |r240 => rfl
+| r120, b, c => match b with
+  | r0 => match c with
+    |r0 => rfl
+    |r120 => rfl
+    |r240 => rfl
+  | r120 => match c with
+    |r0 => rfl
+    |r120 => rfl
+    |r240 => rfl
+  | r240 => match c with
+    |r0 => rfl
+    |r120 => rfl
+    |r240 => rfl
+| r240, b, c => match b with
+  | r0 => match c with
+    |r0 => rfl
+    |r120 => rfl
+    |r240 => rfl
+  | r120 => match c with
+    |r0 => rfl
+    |r120 => rfl
+    |r240 => rfl
+  | r240 => match c with
+    |r0 => rfl
+    |r120 => rfl
+    |r240 => rfl
 
-instance : AddSemigroup Rotation := { add_assoc := _ }
+--lean tactics can greatly simplify:
+--tacticals use other tactics, like 'repeat'
+theorem rot_add_assoc' : ∀ (a b c : Rotation), a+b+c = a+(b+c) :=
+by
+  intros a b c --assume arbitrary values to prove forall with intros
+  cases a
+  repeat {
+    cases b
+    repeat {
+      cases c
+      repeat {rfl}
+    }
+  }
+
+
+instance : AddSemigroup Rotation := { add_assoc := rot_add_assoc }
 
 
 /-!
@@ -294,9 +348,48 @@ point, it's thus super-easy to instantiate the AddMonoid class
 for the Rotation type.
 -/
 
+theorem rot_zadd : ∀ (a : Rotation), 0 + a = a :=
+by
+  intros a
+  cases a
+  repeat {rfl}
+
+theorem rot_addz : ∀ (a : Rotation),  a + 0 = a :=
+by
+  intros a
+  cases a
+  repeat {rfl}
+
+--case analysis is weak for larger types like Nat, use proof by induction instead
+--all inductive datatypes come with own inductive principle (like the nat successors)
+--boolean induction: for any prop P of Booleans, if P true, then P false, then ∀ b, Pb
+--basically just formalized case analysis in this case, more complex types get fancier
+--for Nats, prove it holds for zero, and prove it holds for the successor of a value that it holds for
+/-!
+theorem _ :=
+by
+  induction
+  <--proof for zero>
+  intro n'
+  intro h --assume that you have the P n'
+  <--proof for P (Nat.succ n')>
+
+-/
+--with case analysis, wouldn't have a proof that P n' (got from induction principle)
+/-!
+proof by induction for the sum rule for nats
+∀n : ℕ, sum (0-n) i = n(n+1)/2
+base case is just rfl at 0
+inductive case:
+assume n' is any ℕ and P n'
+show that if you add the next number to a sum it is consistent with the shorthand multiplar
+proof by induction lets you rewrite the previous sum, so you have the old multiplar + (n'+1)
+algebra from there
+-/
+
 instance : AddMonoid Rotation := {
-  zero_add := sorry
-  add_zero := sorry
+  zero_add := rot_zadd
+  add_zero := rot_addz
 }
 
 --scalar mult is synthesized for us as iterative addition
@@ -424,6 +517,14 @@ def add_rs : Rotation → State → State
 instance : VAdd Rotation State := ⟨ add_rs ⟩
 
 #check AddAction.mk
+
+theorem rot_z_vadd : ∀ (p : State), 0 +ᵥ p = p
+| s0 => _
+| s120 => _
+| s240 => _
+
+
+
 instance : AddAction Rotation State := {zero_vadd := sorry, add_vadd := sorry}
 
 #reduce r240 +ᵥ s120 -- \_v gives the little v after the + for the new op
