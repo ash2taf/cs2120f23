@@ -518,14 +518,27 @@ instance : VAdd Rotation State := ⟨ add_rs ⟩
 
 #check AddAction.mk
 
-theorem rot_z_vadd : ∀ (p : State), 0 +ᵥ p = p
-| s0 => _
-| s120 => _
-| s240 => _
+theorem rot_z_vadd : ∀ (p : State), r0 +ᵥ p = p
+| s0 => rfl
+| s120 => rfl
+| s240 => rfl
+
+theorem rot_add_vadd : ∀ (g₁ g₂ : Rotation) (p : State), g₁ + g₂ +ᵥ p = g₁ +ᵥ (g₂ +ᵥ p) :=
+by
+  intros r1
+  intros r2
+  intros s
+  cases r1
+  repeat {
+    cases r2
+    repeat {
+      cases s
+      repeat {rfl}
+    }
+  }
 
 
-
-instance : AddAction Rotation State := {zero_vadd := sorry, add_vadd := sorry}
+instance : AddAction Rotation State := {zero_vadd := rot_z_vadd, add_vadd := rot_add_vadd}
 
 #reduce r240 +ᵥ s120 -- \_v gives the little v after the + for the new op
 #reduce (2 • r120) + (3 • r240) + (0 • r120) +ᵥ s120
@@ -554,9 +567,26 @@ instance : Neg Rotation := ⟨ toNeg_rot ⟩
 instance : Sub Rotation := ⟨ sub_rot ⟩
 
 #check SubNegMonoid.mk
-instance : SubNegMonoid Rotation := {sub_eq_add_neg := sorry}
 
-instance : AddGroup Rotation := {add_left_neg := sorry }
+theorem rot_sean : ∀ (a b : Rotation), a - b = a + -b :=
+by
+  intros a
+  intros b
+  cases a
+  repeat {
+    cases b
+    repeat {rfl}
+  }
+
+instance : SubNegMonoid Rotation := {sub_eq_add_neg := rot_sean}
+
+theorem rot_aln : ∀ (a : Rotation), -a + a = 0 :=
+by
+  intros a
+  cases a
+  repeat {rfl}
+
+instance : AddGroup Rotation := {add_left_neg := rot_aln }
 
 
 /-!
@@ -624,4 +654,24 @@ instance : VSub Rotation State := ⟨ sub_State ⟩
 instance : Nonempty State := ⟨ s0 ⟩ --to instantiate a nonempty, just give any value of the type
 --instance : Nonempty State := ⟨ sorry ⟩ -- before we went over the proof, used to test the AddTorsos
 
-instance : AddTorsor Rotation State := {vsub_vadd' := sorry, vadd_vsub' := sorry}
+theorem rs_vsub_vadd' : ∀ (p1 p2 : State), p1 -ᵥ p2 +ᵥ p2 = p1 :=
+by
+  intros s1
+  intros s2
+  cases s1
+  repeat{
+    cases s2
+    repeat {rfl}
+  }
+
+theorem rs_vadd_vsub' :  ∀ (g : Rotation) (p : State), g +ᵥ p -ᵥ p = g :=
+by
+  intros g
+  intros p
+  cases g
+  repeat {
+    cases p
+    repeat {rfl}
+  }
+
+instance : AddTorsor Rotation State := {vsub_vadd' := rs_vsub_vadd', vadd_vsub' := rs_vadd_vsub'}
