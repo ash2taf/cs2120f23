@@ -81,11 +81,8 @@ List.rec.{u_1, u}
 def list_e_len := 0
 def list_step {α:Type} : α → List α → Nat → Nat := λ _ _ c => 1+c --do this as hw
 
-#check (List.rec 0 list_step)
+-- #check (List.rec 0 list_step : List → Nat)
 
-def list_len (α : Type): List α → Nat
-| List.
-|
 
 inductive Tree (α :Type) where
 | empty : Tree α
