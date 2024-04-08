@@ -568,7 +568,7 @@ instance : Sub Rotation := ⟨ sub_rot ⟩
 
 #check SubNegMonoid.mk
 
-theorem rot_sean : ∀ (a b : Rotation), a - b = a + -b :=
+theorem rot_sub_eq_add_neg: ∀ (a b : Rotation), a - b = a + -b :=
 by
   intros a
   intros b
@@ -578,7 +578,7 @@ by
     repeat {rfl}
   }
 
-instance : SubNegMonoid Rotation := {sub_eq_add_neg := rot_sean}
+instance : SubNegMonoid Rotation := {sub_eq_add_neg := rot_sub_eq_add_neg}
 
 theorem rot_aln : ∀ (a : Rotation), -a + a = 0 :=
 by
