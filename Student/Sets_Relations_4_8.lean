@@ -16,3 +16,5 @@ Properties of sets and relations:
 -/
 
 def isSym {a:Type} := ∀  (r : α → α → Prop), ∀  (a b : α) => r a b → r b a
+
+def isRefl := ∀ (r : α → α → Prop)
