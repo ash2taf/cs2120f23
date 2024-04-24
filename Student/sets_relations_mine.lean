@@ -1,5 +1,7 @@
 import Mathlib.Logic.Relation
 import Mathlib.Logic.Function.Basic
+import Mathlib.LinearAlgebra.AffineSpace.Basic--these two are screwing me up
+-- import Mathlib.Order.Notation --got it, the spacing on my inductive person definition was tripping me up
 
 /-!
 binary relation on a type, α
@@ -52,38 +54,6 @@ functions
 - etc
 -/
 
-inductive Person : Type
-|lu
-|mary
-|jane
-
-open Person
-
-def likes : Person → Person → Prop :=
-λ p1 p2 => p1 = Person.lu ∧ p2 = Person.mary
-
-def likes' : Person → Person → Prop :=
-λ p1 p2 =>
-(p1 = Person.lu ∧ p2 = Person.mary) ∨
-(p2 = Person.lu ∧ p1 = Person.mary)
-
-
-
-#reduce likes Person.lu Person.mary
-
-#reduce likes' lu jane
-
-example : likes Person.lu Person.mary := ⟨rfl, rfl⟩
-example : likes' Person.mary Person.lu := Or.inr ⟨rfl, rfl⟩
-
-example : ¬likes' lu jane := --this is almost right, still some syntax fuckery. Prof will circle back later
-λ h : likes' lu jane =>
-by
-  unfold likes' at h
-  cases h with
-  | inl l => nomatch l.2
-  | inr r => nomatch r.1
-
 
   --Sets, not relations
 def a_set : Set Nat := {1, 2, 3} --these are predicates, can apply to args
@@ -108,9 +78,34 @@ example : 2 ∈ a_set ∪ b_set := by
   exact Or.inl (Or.inr (Or.inl rfl))
 
 example : 2 ∈ a_set \ b_set := by
-  exact ⟨Or.inr (Or.inl rfl), nomatch 2 ⟩
+  show 2 ∈ a_set ∧ 2 ∉ b_set
+  exact ⟨Or.inr (Or.inl rfl), (λ a => nomatch a)⟩
 
-example : 3 ∉ a_set \ b_set := by _
+example : 2 ∈ a_set \ b_set :=⟨
+  (Or.inr (Or.inl rfl)),
+  (by
+    intro h
+    nomatch h)⟩
+
+example : 3 ∉ a_set \ b_set := by _ --pretty much the same, just a bit worse because nin adds cases to cover
+
+--4/22 class notes
+def comp123 : Set Nat := {1, 2, 3}ᶜ
+#reduce comp123
+
+example  : 4 ∈ comp123 := by
+  intro h
+  cases h
+  contradiction
+  rename_i h --rename_i makes a hidden variable real
+  cases h
+  contradiction
+  rename_i h
+  cases h
+
+
+
+
 
 
 --lean defs for properties we've mentioned
@@ -183,3 +178,36 @@ theorem cong_mod_n_equiv'': ∀ n, Equivalence (cong_mod_n n) := by
     (by intro x; rfl)
     (by intro x y h; rw[h])
     (by intros x y z hxy hyz; rw [hxy, hyz])
+
+
+inductive Person : Type
+| lu
+| mary
+| jane
+
+open Person
+
+def likes : Person → Person → Prop :=
+λ p1 p2 => p1 = Person.lu ∧ p2 = Person.mary
+
+def likes' : Person → Person → Prop :=
+λ p1 p2 =>
+(p1 = Person.lu ∧ p2 = Person.mary) ∨
+(p2 = Person.lu ∧ p1 = Person.mary)
+
+
+
+#reduce likes Person.lu Person.mary
+
+#reduce likes' lu jane
+
+example : likes Person.lu Person.mary := ⟨rfl, rfl⟩
+example : likes' Person.mary Person.lu := Or.inr ⟨rfl, rfl⟩
+
+example : ¬likes' lu jane := --this is almost right, still some syntax fuckery. Prof will circle back later
+λ h : likes' lu jane =>
+by
+  unfold likes' at h
+  cases h with
+  | inl l => nomatch l.2
+  | inr r => nomatch r.1
